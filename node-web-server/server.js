@@ -1,26 +1,50 @@
 const express = require( 'express' )
-const hbs = require('hbs')
-// creates basic web server app
-var app = express();
+const hbs     = require( 'hbs' )
+const fs      = require( 'fs' )
 
-hbs.registerPartials(__dirname + '/views/partials')
-app.set('view engine', 'hbs')
-app.use(express.static(__dirname+'/public'))
-hbs.registerHelper('getCurrentYear', () => new Date().getFullYear())
-hbs.registerHelper('screamIt', (text) => text.toUpperCase())
+const port = process.env.PORT || 3000;
+
+var app       = express();
+
+hbs.registerPartials( __dirname + '/views/partials' )
+app.set( 'view engine', 'hbs' )
+
+app.use( ( req, res, next ) => {
+    const now = new Date().toDateString()
+    const log = `${now}: ${req.method} ${req.url}`;
+
+    console.log( log );
+    fs.appendFile( 'server.log', log + '\n', err => {
+        if ( err ) {
+            console.log( 'Unable to append to server.log file' );
+        }
+    } );
+    next();
+} );
+
+    // app.use( ( req, res, next ) => {
+    //     res.render( 'maintenance' )
+    // } );
+
+app.use( express.static( __dirname + '/public' ) )
+
+
+hbs.registerHelper( 'getCurrentYear', () => new Date().getFullYear() )
+hbs.registerHelper( 'screamIt', ( text ) => text.toUpperCase() )
+
 
 // route that returns JSON response and sets content-type header accordingly
 app.get( '/', ( req, res ) => {
-    res.render('home.hbs', {
+    res.render( 'home.hbs', {
         pageTitle: 'Home Page',
         welcomeMessage: "Welcome!"
-    })
+    } )
 } );
 
 app.get( '/about', ( req, res ) => {
-    res.render('about.hbs', {
+    res.render( 'about.hbs', {
         pageTitle: 'About Page',
-    })
+    } )
 } );
 
 app.get( '/bad', ( req, res ) => {
@@ -30,6 +54,6 @@ app.get( '/bad', ( req, res ) => {
 } );
 
 // listening on port 3000 (localhost:3000)
-app.listen( 3000, () => {
-    console.log('Server is up and listening on port 3000');
+app.listen( port, () => {
+    console.log( `Server is up and listening on port ${port}` );
 } );
