@@ -140,7 +140,7 @@ describe('PATCH /todos/:id', () => {
         }).expect(200).expect(res => {
             expect(res.body.todo.text).toBe('new text');
             expect(res.body.todo.completed).toBe(true);
-            expect(res.body.todo.completed).toBe(true);
+            expect(typeof res.body.todo.completedAt).toBe('number');
         })
             .end(done)
     });
@@ -161,7 +161,7 @@ describe('PATCH /todos/:id', () => {
         }).expect(200).expect(res => {
             expect(res.body.todo.text).toBe(todos[ 1 ].text);
             expect(res.body.todo.completed).toBe(false);
-            expect(res.body.todo.completedAt).toBe(null);
+            expect(res.body.todo.completedAt).toBeFalsy();
         })
             .end(done)
     });
@@ -261,7 +261,7 @@ describe('POST /users/login', () => {
                     return done(err)
                 }
                 User.findById(users[ 1 ]._id).then(user => {
-                    expect(user.tokens[ 1 ]).toMatchObject({
+                    expect(user.toObject().tokens[ 1 ]).toMatchObject({
                         access: 'auth',
                         token: res.headers[ 'x-auth' ]
                     });
