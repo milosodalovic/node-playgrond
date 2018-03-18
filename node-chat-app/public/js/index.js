@@ -1,5 +1,23 @@
 var socket = io();
 
+function scrollToBottom(){
+    //selectors
+    const messages = jQuery('#messages');
+    const newMessage = messages.children('li:last-child');
+
+
+    //heights
+    const clientHeight = messages.prop('clientHeight');
+    const scrollTop = messages.prop('scrollTop');
+    const scrollHeight = messages.prop('scrollHeight');
+    const newMessageHeight = newMessage.innerHeight();
+    const lastMessageHeight = newMessage.prev().innerHeight();
+
+    if(clientHeight + scrollTop + newMessageHeight + lastMessageHeight >= scrollHeight){
+        messages.scrollTop(scrollHeight);
+    }
+}
+
 socket.on('connect', () => {
     console.log('connected to server');
 });
@@ -9,18 +27,30 @@ socket.on('disconnect', () => {
 });
 
 socket.on('newMessage', (message) => {
-    let li = jQuery('<li></li>');
-    li.text(`${message.from}: ${message.text}`);
-    jQuery('#messages').append(li);
+    const formattedTime = moment(message.createdAt).format('h:mm a');
+
+    const template = jQuery('#message-template').html();
+    const html = Mustache.render(template, {
+        text: message.text,
+        from: message.from,
+        createdAt: formattedTime
+    });
+    jQuery('#messages').append(html);
+    scrollToBottom();
+
 });
 
 socket.on('newLocationMessage', (message) => {
-    let li = jQuery('<li></li>');
-    let a = jQuery('<a target="_blank">My location</a>');
-    li.text(`${message.from}: `);
-    a.attr('href',`${message.url}`);
-    li.append(a);
-    jQuery('#messages').append(li);
+    const formattedTime = moment(message.createdAt).format('h:mm a');
+    const template = jQuery('#location-message-template').html();
+    const html = Mustache.render(template,{
+        from:message.from,
+        url: message.url,
+        createdAt:formattedTime
+    });
+
+    jQuery('#messages').append(html);
+    scrollToBottom();
 });
 
 jQuery('#new-message').on('submit', function(e) {
