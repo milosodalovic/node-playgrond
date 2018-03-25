@@ -5,7 +5,6 @@ function scrollToBottom(){
     const messages = jQuery('#messages');
     const newMessage = messages.children('li:last-child');
 
-
     //heights
     const clientHeight = messages.prop('clientHeight');
     const scrollTop = messages.prop('scrollTop');
@@ -19,7 +18,24 @@ function scrollToBottom(){
 }
 
 socket.on('connect', () => {
-    console.log('connected to server');
+    let params = jQuery.deparam(window.location.search);
+
+    socket.emit('join', params, function(err){
+        if(err){
+            alert(err);
+            window.location.href = "/";
+        } else {
+            console.log('no error');
+        }
+    })
+});
+
+socket.on('updateUserList', function(users){
+    let ol = jQuery('<ol></ol>');
+    users.forEach(user=>{
+        ol.append(jQuery('<li></li>').text(user));
+    });
+    jQuery('#users').html(ol);
 });
 
 socket.on('disconnect', () => {
@@ -57,7 +73,6 @@ jQuery('#new-message').on('submit', function(e) {
     e.preventDefault();
     const messageTextbox = jQuery('[name=message]');
     socket.emit('createMessage', {
-        from: 'User',
         text: messageTextbox.val()
     }, function() {
         messageTextbox.val('');
